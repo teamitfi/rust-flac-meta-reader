@@ -59,12 +59,15 @@ fn find_flac_files(dir_path: &str) -> Vec<String> {
 
 fn print_metadata(file_path: &str) -> Result<(), String> {
     let reader = FlacReader::open(file_path).map_err(|e| e.to_string())?;
+    let md5: [u8; 16] = reader.streaminfo().md5sum;
+    if (md5.len() > 0) {
+        dbg!("md5 {}", md5);
 
-    dbg!("md5 {}", reader.streaminfo().md5sum);
-    // Print all other tags
-    for (name, value) in reader.tags() {
-        println!("{}: {}", name, value);
-    }
+    } 
+//    // Print all other tags
+//     for (name, value) in reader.tags() {
+//         println!("{}: {}", name, value);
+//     }
 
     Ok(())
 }
