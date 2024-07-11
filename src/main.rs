@@ -1,24 +1,23 @@
 extern crate walkdir;
 
+use clap::Parser;
 use flac::StreamReader;
-use std::env;
 use std::fs::File;
-use std::path::Path;
 use walkdir::WalkDir;
 
-fn main() {
-    // Get the directory path from the command line arguments
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
-        eprintln!("Usage: {} <directory_path>", args[0]);
-        std::process::exit(1);
-    }
+#[derive(Parser)]
+struct CliArguments {
+    path: std::path::PathBuf,
+}
 
-    let dir_path = &args[1];
+fn main() {
+    let args = CliArguments::parse();
+
+    let dir_path = args.path;
 
     // Check if the provided path is a directory
-    if !Path::new(dir_path).is_dir() {
-        eprintln!("Error: {} is not a directory", dir_path);
+    if !dir_path.is_dir() {
+        eprintln!("Error: {} is not a directory", dir_path.display());
         std::process::exit(1);
     }
 
@@ -37,7 +36,7 @@ fn main() {
     }
 }
 
-fn find_flac_files(dir_path: &str) -> Vec<String> {
+fn find_flac_files(dir_path: std::path::PathBuf) -> Vec<String> {
     let mut flac_files = Vec::new();
 
     // Recursively walk through the directory
