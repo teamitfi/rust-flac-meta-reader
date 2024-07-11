@@ -2,8 +2,11 @@ extern crate walkdir;
 
 use clap::Parser;
 use flac::StreamReader;
+use std::env;
 use std::fs::File;
+use std::path::Path;
 use walkdir::WalkDir;
+use metaflac::Tag;
 
 #[derive(Parser)]
 struct CliArguments {
@@ -34,6 +37,7 @@ fn main() {
             print_metadata(&file);
         }
     }
+    println!("Finished!");
 }
 
 fn find_flac_files(dir_path: std::path::PathBuf) -> Vec<String> {
@@ -54,19 +58,42 @@ fn find_flac_files(dir_path: std::path::PathBuf) -> Vec<String> {
     flac_files
 }
 
+// fn print_metadata(file_path: &str) {
+//     match StreamReader::<File>::from_file(file_path) {
+//         Ok(stream) => {
+//             // Copy of `StreamInfo` to help convert to a different audio format.
+//             let info = stream.info();
+//             // The explicit size for `Stream::iter` is the resulting decoded
+//             // sample. You can usually find out the desired size of the
+//             // samples with `info.bits_per_sample`.
+//             if info.md5_sum == [0; 16] {
+//                 println!("Empty MD5");
+//             } else {
+//                 dbg!(info);
+//             }
+//         }
+//         Err(error) => println!("{:?}", error),
+//     }
+// }
 fn print_metadata(file_path: &str) {
-    match StreamReader::<File>::from_file(file_path) {
-        Ok(stream) => {
-            // Copy of `StreamInfo` to help convert to a different audio format.
-            let info = stream.info();
-            // The explicit size for `Stream::iter` is the resulting decoded
-            // sample. You can usually find out the desired size of the
-            // samples with `info.bits_per_sample`.
-            dbg!(info);
-            if info.md5_sum == [0; 16] {
-                println!("Empty MD5");
+    let path = Path::new(file_path);
+    match Tag::read_from_path(path) {
+        Ok(tag) => {
+            // Handling the case where `get_vorbis` returns an `Option<Vec<&str>>`
+            let title = tag.get_vorbis("TITLE");
+            match title {
+                Some(titles) => {
+                    let titles_vec: Vec<&str> = titles.collect();
+                    if !titles_vec.is_empty() {
+                        println!("Title: {}", titles_vec[0]);
+                    } 
+
+                }
+                _ => println!("Title not found in metadata"),
             }
+
+
         }
-        Err(error) => println!("{:?}", error),
+        Err(e) => println!("Failed to read FLAC metadata for {}: {}", file_path, e),
     }
 }
