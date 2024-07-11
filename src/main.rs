@@ -1,10 +1,10 @@
-extern crate claxon;
 extern crate walkdir;
 
+use flac::StreamReader;
 use std::env;
+use std::fs::File;
 use std::path::Path;
 use walkdir::WalkDir;
-use claxon::FlacReader;
 
 fn main() {
     // Get the directory path from the command line arguments
@@ -32,10 +32,7 @@ fn main() {
         println!("FLAC files found in the directory:");
         for file in flac_files {
             println!("Processing file: {}", file);
-            match print_metadata(&file) {
-                Ok(_) => (),
-                Err(e) => eprintln!("Error reading metadata from {}: {}", file, e),
-            }
+            print_metadata(&file);
         }
     }
 }
@@ -58,13 +55,19 @@ fn find_flac_files(dir_path: &str) -> Vec<String> {
     flac_files
 }
 
-fn print_metadata(file_path: &str) -> Result<(), String> {
-    let reader = FlacReader::open(file_path).map_err(|e| e.to_string())?;
-
-    // Print all other tags
-    for (name, value) in reader.tags() {
-        println!("{}: {}", name, value);
+fn print_metadata(file_path: &str) {
+    match StreamReader::<File>::from_file(file_path) {
+        Ok(stream) => {
+            // Copy of `StreamInfo` to help convert to a different audio format.
+            let info = stream.info();
+            // The explicit size for `Stream::iter` is the resulting decoded
+            // sample. You can usually find out the desired size of the
+            // samples with `info.bits_per_sample`.
+            dbg!(info);
+            if info.md5_sum == [0; 16] {
+                println!("Empty MD5");
+            }
+        }
+        Err(error) => println!("{:?}", error),
     }
-
-    Ok(())
 }
