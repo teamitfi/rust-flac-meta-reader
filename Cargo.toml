@@ -13,3 +13,5 @@ metaflac = "0.2"
 claxon = "0.4.3"
 diesel = { version = "2.1.0", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
 dotenvy = "0.15"
+diesel-dynamic-schema = "0.2.2"
+

@@ -15,4 +15,4 @@ Cargo.lock
 *DS_store
 
 db.sqlite3
-migrations*
+.vscode
